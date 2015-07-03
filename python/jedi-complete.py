@@ -10,8 +10,7 @@ def completions(source, line, column):
         source: source code to generate completion for
         line, column: current cursor position in the source code
     Returns:
-        list with dictionaries containing the name, docstring and description
-        for all completions.
+        list with dictionaries containing the name and type for all completions.
     """
     script = jedi.api.Script(
         source=source,
@@ -34,14 +33,16 @@ def completions(source, line, column):
 
 documentPath = str(sys.argv[1])
 sys.path.append(documentPath)
-source = str(sys.argv[2])
+sourcePath = str(sys.argv[2])
+f = open(sourcePath, "r")
 line = int(sys.argv[3])
 column = int(sys.argv[4])
 
-res = json.dumps(completions(source,line,column))
+res = json.dumps(completions(f.read(),line,column))
+
+f.close()
 
 print(res)
 
-# Example :
-# python jedi-complete.py /home/nogaret/.config/Brackets/extensions/user/python-jedi/python 'fo' 1 2
-# python jedi-complete.py /home/nogaret/.config/Brackets/extensions/user/python-jedi/python 'import json; json.dum' 1 21
+# Examples :
+# python jedi-complete.py /home/nogaret/.config/Brackets/extensions/user/brackets-python-jedi/python /home/nogaret/.config/Brackets/extensions/user/brackets-python-jedi/python/jeditmp 1 2

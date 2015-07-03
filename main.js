@@ -5,48 +5,30 @@
 /** 
     Python jedi extension
     Add autocomplete (using Jedi) for python documents
-    Jedi must be already installed !
 */
 define(function (require, exports, module) {
     "use strict";
 
     var CommandManager  = brackets.getModule("command/CommandManager"),
         DocumentManager = brackets.getModule("document/DocumentManager"),
-        EditorManager   = brackets.getModule("editor/EditorManager"),
         AppInit         = brackets.getModule("utils/AppInit"),
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         NodeDomain      = brackets.getModule("utils/NodeDomain"),
         NodeConnection  = brackets.getModule("utils/NodeConnection"),
         ProjectManager  = brackets.getModule("project/ProjectManager"),
-        FileUtils       = brackets.getModule("file/FileUtils"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         Menus           = brackets.getModule("command/Menus");
     
-    var MY_COMMAND_ID   = "bnogaret.brackets-python-jedi";
-    var MENU_NAME       = "Python Jedi Power over 9000";
-    
-    var DOMAIN_NAME     = "pythonJedi";/*,
-        COMMAND_NAME    = "pythonJediCommand",
-        EVENT_UPDATE    = "update",
-        EVENT_ERROR     = "error";
-        */
+    var MY_COMMAND_ID   = "bnogaret.brackets-python-jedi",
+        MENU_NAME       = "Python Jedi Power over 9000",
+        DOMAIN_NAME     = "pythonJedi";
     
     var modulePath      = ExtensionUtils.getModulePath(module),
         nodeConnection  = new NodeConnection(),
-        domainPath      = ExtensionUtils.getModulePath(module) + "/node/JediDomain";
+        domainPath      = ExtensionUtils.getModulePath(module) + "/node/JediDomain",
+        pythonJediDomain = new NodeDomain(DOMAIN_NAME, ExtensionUtils.getModulePath(module, "node/JediDomain"));
     
-    var pythonJediDomain = new NodeDomain(DOMAIN_NAME, ExtensionUtils.getModulePath(module, "node/JediDomain"));
-    
-    function getHint(pythonCode, currentLine, currentCol) {
-        /*
-        pythonJediDomain.exec(COMMAND_NAME, modulePath, "/home/nogaret/.config/Brackets/extensions/user/python-jedi/python", "import json; json.dum", 1, 21)
-            .done(function (data) {
-                console.log("Data: " + data);
-            })
-            .fail(function (err) {
-                console.log("Err: " + err);
-            });
-        */
+    function getHint(pythonCode, projectRootPath, currentLine, currentCol) {
         
         var deferred = new $.Deferred();
         
@@ -58,19 +40,14 @@ define(function (require, exports, module) {
                 console.error("[ERROR:getHint] domain: ", err);
             });
         }).then(function () {
-            nodeConnection.domains[DOMAIN_NAME].jediCommand(modulePath, "/home/nogaret/.config/Brackets/extensions/user/python-jedi/python", pythonCode, currentLine, currentCol)
+            nodeConnection.domains[DOMAIN_NAME].jediCommand(modulePath, projectRootPath, pythonCode, currentLine, currentCol)
                 .fail(function (err) {
                     console.error("[ERROR:getHint] result: ", err);
                     deferred.reject(err);
                 })
                 .done(function (data) {
                     console.log("Data:" + data);
-                    var test = JSON.parse(data);
-                    /*
-                    test.forEach(function (node, number) {
-                        console.log("Node " + number + " : " + JSON.stringify(node));
-                    });
-                    */
+
                     deferred.resolve(JSON.parse(data));
                 });
         });
@@ -82,39 +59,34 @@ define(function (require, exports, module) {
         http://brackets.io/docs/current/modules/editor/CodeHintManager.html
     */
     function PythonJediHintProvider() {
-        var editor;
         
-        this.hasHints = function (editor, implicitChar) {
-            console.log("hasHints");
-            this.editor = editor;
-            //console.log(editor);
-            //console.log(editor.document.file.fullPath);
-            //console.log(implicitChar);
-            return true;
-        };
+        var ignoredChar = [' ', '+', '-', '/', '*', '(', ')', '[', ']', ':', ',', '<', '>', '.', '{', '}', '=', '%', '!'],
+            editor,
+            projectRootPath;
         
-        // TODO let the '.' ?
-        var ignoredtokens = [' ', '+', '-', '/', '*', '(', ')', '[', ']', ':', ',', '<', '>', '.', '{', '}', '=', '%', '!'];
-
         function isValidToken(implicitChar) {
             if (implicitChar) {
                 var code = implicitChar.charCodeAt(0);
                 // Unicode 13 : carrage return
                 // Unicode 9 : tabulation
-                return (ignoredtokens.indexOf(implicitChar) === -1) && (code !== 13) && (code !== 9);
+                return (ignoredChar.indexOf(implicitChar) === -1) && (code !== 13) && (code !== 9);
             } else {
-                return false;
+                return true;
             }
         }
         
-        
-        /**
-        *   TODO : cache ?
-        */
+        this.hasHints = function (editor, implicitChar) {
+            console.log("hasHints");
+            console.log(ProjectManager.getProjectRoot()._path);
+            this.editor = editor;
+            this.projectRootPath = ProjectManager.getProjectRoot()._path;
+            
+            return isValidToken(implicitChar);
+        };
+  
         this.getHints = function (implicitChar) {
             console.log("getHints");
-            //console.log(this.editor.document.getText());
-            console.log(this.editor._codeMirror.getValue());
+            console.log("implicitChar: " + implicitChar + " et " + isValidToken(implicitChar));
             
             if (isValidToken(implicitChar)) {
                 var deferred = new $.Deferred();
@@ -122,7 +94,7 @@ define(function (require, exports, module) {
                 var currentLinePosition = this.editor.getCursorPos().line + 1,
                     currentColPosition = this.editor.getCursorPos().ch;
                 
-                getHint(this.editor.document.getText(), currentLinePosition, currentColPosition)
+                getHint(this.editor.document.getText(), this.projectRootPath, currentLinePosition, currentColPosition)
                     .fail(function (err) {
                         deferred.reject(err);
                     })
@@ -132,10 +104,13 @@ define(function (require, exports, module) {
                         console.log("Done:" + JSON.stringify(dataJSON));
                         
                         dataJSON.forEach(function (node, number) {
-                            hintList.push(node.name);
+                            if (node.type === "function") {
+                                hintList.push(node.name + "()");
+                            } else {
+                                hintList.push(node.name);
+                            }
                         });
-                    
-                        //hintList.push("Hello");
+                        
                         hintList.sort();
                     
                         deferred.resolve({
@@ -153,16 +128,22 @@ define(function (require, exports, module) {
         
         this.insertHint = function (hint) {
             console.log("insertHint");
+            console.log("Inserted hint: " + hint);
             var cursor              = this.editor.getCursorPos(),
-                currentToken        = this.editor._codeMirror.getTokenAt(cursor),
+                currentToken        =  this.editor._codeMirror.getTokenAt(cursor),
                 startToken          = {line: cursor.line, ch: currentToken.start},
                 endToken            = {line: cursor.line, ch: cursor.ch};
-            console.log(hint);
-            console.log(cursor);
-            console.log(currentToken);
-            console.log(startToken);
-            console.log(endToken);
+            
             this.editor.document.replaceRange(hint, startToken, endToken);
+            
+            // When a function, move the cursor inside the ()
+            if (hint.slice(-1) === ")") {
+                cursor = this.editor.getCursorPos();
+                this.editor.setCursorPos({
+                    line: cursor.line,
+                    ch: cursor.ch - 1
+                });
+            }
             return false;
         };
     }
@@ -174,38 +155,25 @@ define(function (require, exports, module) {
 
     function menusHandler() {
         if (isLanguagePython(DocumentManager.getCurrentDocument())) {
-            window.alert("C'est du python !");
+            window.alert("This is a python file !");
         } else {
-            window.alert("Ce n'est pas du python.");
+            window.alert("This is not a python file.");
         }
     }
 
     
     AppInit.appReady(function () {
         console.log(modulePath);
-        var currentEditor = EditorManager.getCurrentFullEditor();
+        console.log(ProjectManager.getBaseUrl());
+        
         CodeHintManager.registerHintProvider(new PythonJediHintProvider(), ["python"], 1);
-        
-        getHint("fo", 1, 2);
-        
-        /*
-        pythonJediDomain.on(EVENT_UPDATE, function (evt, data) {
-            console.log("Evt DATA : " + data);
-        });
-
-        pythonJediDomain.on(EVENT_ERROR, function (evt, err) {
-            console.log("Evt ERR : " + err);
-        });
-        */
     });
 
 
-    // First, register a command - a UI-less object associating an id to a handler
-    // package-style naming to avoid collisions
+    // Register the command
     CommandManager.register(MENU_NAME, MY_COMMAND_ID, menusHandler);
 
-    // Then create a menu item bound to the command
-    // The label of the menu item is the name we gave the command (see above)
+    // Register a menu item bound to the command
     var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
     menu.addMenuItem(MY_COMMAND_ID);
 });

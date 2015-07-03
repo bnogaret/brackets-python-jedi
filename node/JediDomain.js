@@ -1,67 +1,34 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4 */
 /*global exports, require, $ */
 
+
 (function () {
     "use strict";
     
-    var process = require('child_process');
+    var process = require('child_process'),
+        fs      = require('fs');
     
     var DOMAIN_NAME = "pythonJedi",
-        COMMAND_DOMAIN = "jediCommand",
-        EVENT_UPDATE = "update",
-        EVENT_ERROR = "error";
+        COMMAND_DOMAIN = "jediCommand";
     
-    var childproc = null,
-        _domainManager = null;
-    
-    function jediCommandHandler(modulePath, documentPath, source, line, col, callback) {
-        var command = "python " + modulePath + "/python/jedi-complete.py " + documentPath + " '" + source + "' " + line + " " + col;
-        console.log("[LOG:pythonJediCommand] command: " + command);
+    function jediCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
+        var tmpPath = modulePath + '/python/jeditmp',
+            command = "python " + modulePath + "/python/jedi-complete.py " + projectRootPath + " " + tmpPath + " " + line + " " + col;
+        console.log("[LOG:jediCommandHandler] command: " + command);
         
-        /*
-        process.exec(command, function (error, stdout, stderr) {
-            console.log('stdout: ' + stdout);
-            console.log('stderr: ' + stderr);
-            if (error !== null) {
-                console.log('exec error: ' + error);
-                _domainManager.emitEvent(DOMAIN_NAME, EVENT_ERROR, stderr);
-                return stderr;
+        fs.writeFile(tmpPath, txt, function (err) {
+            if (err) {
+                callback(err, undefined);
             }
-            _domainManager.emitEvent(DOMAIN_NAME, EVENT_UPDATE, stdout);
-            return stdout;
+            process.exec(command, function (err, stdout, stderr) {
+                callback(err ? stderr : undefined, err ? undefined : stdout);
+            });
         });
-        */
-        
-        process.exec(command, function (err, stdout, stderr) {
-            callback(err ? stderr : undefined, err ? undefined : stdout);
-        });
-        
-        /*
-        var child = process.spawn("python", [modulePath + "/python/jedi-complete.py", documentPath, "'" + source + "'", line + 4, col + 1]);
-        var tmp = '';
-
-        child.stdout.on('data', function (data) {
-            tmp += data;
-        });
-
-        child.stderr.on('err', function (err) {
-            //_domainManager.emitEvent(DOMAIN_NAME, EVENT_ERROR, err);
-            console.log("Error: " + err);
-            callback(err, undefined);
-        });
-
-        child.on('close', function (code) {
-            //_domainManager.emitEvent(DOMAIN_NAME, EVENT_UPDATE, tmp);
-            callback(undefined, tmp);
-        });
-
-        child.unref();
-        */
     }
 
     function init(domainManager) {
-        if (!domainManager.hasDomain("pythonJedi")) {
-            domainManager.registerDomain("pythonJedi", {major: 0, minor: 1});
+        if (!domainManager.hasDomain(DOMAIN_NAME)) {
+            domainManager.registerDomain(DOMAIN_NAME, {major: 0, minor: 1});
         }
         
         domainManager.registerCommand(
@@ -95,22 +62,6 @@
             ],
             []
         );
-        
-        /*
-        domainManager.registerEvent(
-            DOMAIN_NAME,
-            EVENT_UPDATE,
-            ["data"]
-        );
-
-        domainManager.registerEvent(
-            DOMAIN_NAME,
-            EVENT_ERROR,
-            ["err"]
-        );
-        
-        _domainManager = domainManager;
-        */
     }
 
     exports.init = init;
