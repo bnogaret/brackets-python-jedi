@@ -17,6 +17,7 @@ TODO:
 * Cache for getHints ?
 * let the '.' in ignoredChar ?
 * goto definition / function ?
+* handler to have documentation ?
 
 Problems:
 * when ( or . and add hint : delete last charachter

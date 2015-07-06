@@ -19,6 +19,8 @@ define(function (require, exports, module) {
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         Menus           = brackets.getModule("command/Menus");
     
+    var HintUtils = require("HintUtils");
+    
     var MY_COMMAND_ID   = "bnogaret.brackets-python-jedi",
         MENU_NAME       = "Python Jedi Power over 9000",
         DOMAIN_NAME     = "pythonJedi";
@@ -60,20 +62,8 @@ define(function (require, exports, module) {
     */
     function PythonJediHintProvider() {
         
-        var ignoredChar = [' ', '+', '-', '/', '*', '(', ')', '[', ']', ':', ',', '<', '>', '.', '{', '}', '=', '%', '!'],
-            editor,
+        var editor,
             projectRootPath;
-        
-        function isValidToken(implicitChar) {
-            if (implicitChar) {
-                var code = implicitChar.charCodeAt(0);
-                // Unicode 13 : carrage return
-                // Unicode 9 : tabulation
-                return (ignoredChar.indexOf(implicitChar) === -1) && (code !== 13) && (code !== 9);
-            } else {
-                return true;
-            }
-        }
         
         this.hasHints = function (editor, implicitChar) {
             console.log("hasHints");
@@ -81,14 +71,20 @@ define(function (require, exports, module) {
             this.editor = editor;
             this.projectRootPath = ProjectManager.getProjectRoot()._path;
             
-            return isValidToken(implicitChar);
+            var currentToken = this.editor._codeMirror.getTokenAt(this.editor.getCursorPos());
+            
+            if (!HintUtils.isHintable(currentToken)) {
+                return false;
+            } else {
+                return HintUtils.isValidToken(implicitChar);
+            }
         };
   
         this.getHints = function (implicitChar) {
             console.log("getHints");
-            console.log("implicitChar: " + implicitChar + " et " + isValidToken(implicitChar));
+            console.log("implicitChar: " + implicitChar + " et " + HintUtils.isValidToken(implicitChar));
             
-            if (isValidToken(implicitChar)) {
+            if (HintUtils.isValidToken(implicitChar)) {
                 var deferred = new $.Deferred();
                 
                 var currentLinePosition = this.editor.getCursorPos().line + 1,
@@ -111,7 +107,8 @@ define(function (require, exports, module) {
                             }
                         });
                         
-                        hintList.sort();
+                        console.log(hintList);
+                        hintList.sort(HintUtils.compareHint);
                     
                         deferred.resolve({
                             hints: hintList,
@@ -134,6 +131,7 @@ define(function (require, exports, module) {
                 startToken          = {line: cursor.line, ch: currentToken.start},
                 endToken            = {line: cursor.line, ch: cursor.ch};
             
+            // Hack : should use Document but it seems there is a problem
             this.editor.document.replaceRange(hint, startToken, endToken);
             
             // When a function, move the cursor inside the ()
@@ -147,14 +145,9 @@ define(function (require, exports, module) {
             return false;
         };
     }
-    
-
-    function isLanguagePython(editor) {
-        return editor.language.getId() === "python";
-    }
 
     function menusHandler() {
-        if (isLanguagePython(DocumentManager.getCurrentDocument())) {
+        if (HintUtils.isLanguagePython(DocumentManager.getCurrentDocument())) {
             window.alert("This is a python file !");
         } else {
             window.alert("This is not a python file.");
@@ -164,7 +157,6 @@ define(function (require, exports, module) {
     
     AppInit.appReady(function () {
         console.log(modulePath);
-        console.log(ProjectManager.getBaseUrl());
         
         CodeHintManager.registerHintProvider(new PythonJediHintProvider(), ["python"], 1);
     });

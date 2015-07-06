@@ -28,5 +28,4 @@ class newTest:
         print("5");
 
 i = newTest()
-i__class__
 requests.get()
