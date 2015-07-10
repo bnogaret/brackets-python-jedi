@@ -21,3 +21,6 @@ TODO:
 
 Problems:
 * when ( or . and add hint : delete last charachter
+* "[ERROR:getHint] domain:  cleanup" or "[ERROR:getHint] result:  cleanup"
+* multiple "same" word
+* not at all efficient ! (slow down Brackets)

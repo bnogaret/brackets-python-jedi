@@ -18,8 +18,6 @@ c.rere()
 
 i = int("5")
 
-for j in range(i)
-
 class newTest:
     def __init__(self):
         self.x = 5

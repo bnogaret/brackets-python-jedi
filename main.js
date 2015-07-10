@@ -3,48 +3,54 @@
 
 
 /** 
-    Python jedi extension
-    Add autocomplete (using Jedi) for python documents
+ * Python jedi extension
+ * Add autocomplete (using Jedi) for python documents
 */
 define(function (require, exports, module) {
     "use strict";
 
-    var CommandManager  = brackets.getModule("command/CommandManager"),
-        DocumentManager = brackets.getModule("document/DocumentManager"),
-        AppInit         = brackets.getModule("utils/AppInit"),
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        NodeDomain      = brackets.getModule("utils/NodeDomain"),
-        NodeConnection  = brackets.getModule("utils/NodeConnection"),
-        ProjectManager  = brackets.getModule("project/ProjectManager"),
-        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
-        Menus           = brackets.getModule("command/Menus");
+    var CommandManager      = brackets.getModule("command/CommandManager"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        AppInit             = brackets.getModule("utils/AppInit"),
+        EditorManager       = brackets.getModule("editor/EditorManager"),
+        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        NodeDomain          = brackets.getModule("utils/NodeDomain"),
+        NodeConnection      = brackets.getModule("utils/NodeConnection"),
+        ProjectManager      = brackets.getModule("project/ProjectManager"),
+        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        Menus               = brackets.getModule("command/Menus");
     
     var HintUtils = require("HintUtils");
     
-    var MY_COMMAND_ID   = "bnogaret.brackets-python-jedi",
-        MENU_NAME       = "Python Jedi Power over 9000",
-        DOMAIN_NAME     = "pythonJedi";
+    var MY_COMMAND_ID       = "bnogaret.brackets-python-jedi",
+        MENU_NAME           = "Python Jedi Power over 9000",
+        DOMAIN_NAME         = "pythonJedi",
+        COMMAND_NAME_HINT   = "jediHintCommand",
+        COMMAND_NAME_GOTO   = "jediGotoCommand";
     
-    var modulePath      = ExtensionUtils.getModulePath(module),
-        nodeConnection  = new NodeConnection(),
-        domainPath      = ExtensionUtils.getModulePath(module) + "/node/JediDomain",
-        pythonJediDomain = new NodeDomain(DOMAIN_NAME, ExtensionUtils.getModulePath(module, "node/JediDomain"));
+    var modulePath          = ExtensionUtils.getModulePath(module),
+        nodeConnection      = new NodeConnection(),
+        domainPath          = ExtensionUtils.getModulePath(module) + "/node/JediDomain",
+        pythonJediDomain    = new NodeDomain(DOMAIN_NAME, ExtensionUtils.getModulePath(module, "node/JediDomain"));
     
-    function getHint(pythonCode, projectRootPath, currentLine, currentCol) {
+    /**
+     * Execute python and return a promise the Json result.
+     */
+    function getJson(call, pythonCode, projectRootPath, currentLine, currentCol) {
         
         var deferred = new $.Deferred();
         
         nodeConnection.connect(true).fail(function (err) {
-            console.error("[ERROR:getHint] connect to node: ", err);
+            console.error("[ERROR:getJson] connect to node: ", err);
             deferred.reject(err);
         }).then(function () {
             return nodeConnection.loadDomains([domainPath], true).fail(function (err) {
-                console.error("[ERROR:getHint] domain: ", err);
+                console.error("[ERROR:getJson] domain: ", err);
             });
         }).then(function () {
-            nodeConnection.domains[DOMAIN_NAME].jediCommand(modulePath, projectRootPath, pythonCode, currentLine, currentCol)
+            nodeConnection.domains[DOMAIN_NAME][call](modulePath, projectRootPath, pythonCode, currentLine, currentCol)
                 .fail(function (err) {
-                    console.error("[ERROR:getHint] result: ", err);
+                    console.error("[ERROR:getJson] result: ", err);
                     deferred.reject(err);
                 })
                 .done(function (data) {
@@ -90,7 +96,7 @@ define(function (require, exports, module) {
                 var currentLinePosition = this.editor.getCursorPos().line + 1,
                     currentColPosition = this.editor.getCursorPos().ch;
                 
-                getHint(this.editor.document.getText(), this.projectRootPath, currentLinePosition, currentColPosition)
+                getJson(COMMAND_NAME_HINT, this.editor.document.getText(), this.projectRootPath, currentLinePosition, currentColPosition)
                     .fail(function (err) {
                         deferred.reject(err);
                     })
@@ -145,20 +151,52 @@ define(function (require, exports, module) {
             return false;
         };
     }
+    
+    function jumpToDefHandler(editor, cursor) {
+        console.log(editor);
+        console.log(cursor);
+        if (HintUtils.isLanguagePython(editor.document)) {
+            var deferred = new $.Deferred(),
+                source = editor.document.getText(),
+                projectRootPath = ProjectManager.getProjectRoot()._path;
+            
+            getJson(COMMAND_NAME_GOTO, source, projectRootPath, cursor.line + 1, cursor.ch)
+                .fail(function (err) {
+                    console.log(err);
+                    deferred.reject(err);
+                })
+                .then(function (dataJSON) {
+                    console.log(dataJSON);
+                    if (!dataJSON[0].path) {
+                        editor.setCursorPos(dataJSON[0].line - 1, dataJSON[0].column);
+                        deferred.resolve();
+                    }
+                });
+            
+            return deferred;
+        } else {
+            return null;
+        }
+    }
 
     function menusHandler() {
         if (HintUtils.isLanguagePython(DocumentManager.getCurrentDocument())) {
-            window.alert("This is a python file !");
+            var editor = EditorManager.getActiveEditor();
+            
+            jumpToDefHandler(editor, editor.getCursorPos());
+            
         } else {
             window.alert("This is not a python file.");
         }
     }
-
+    
     
     AppInit.appReady(function () {
         console.log(modulePath);
         
         CodeHintManager.registerHintProvider(new PythonJediHintProvider(), ["python"], 1);
+        
+        EditorManager.registerJumpToDefProvider(jumpToDefHandler);
     });
 
 
@@ -167,5 +205,5 @@ define(function (require, exports, module) {
 
     // Register a menu item bound to the command
     var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
-    menu.addMenuItem(MY_COMMAND_ID);
+    menu.addMenuItem(MY_COMMAND_ID, "Ctrl-Shift-G");
 });

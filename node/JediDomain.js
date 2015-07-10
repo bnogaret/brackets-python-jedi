@@ -9,20 +9,37 @@
         fs      = require('fs');
     
     var DOMAIN_NAME = "pythonJedi",
-        COMMAND_DOMAIN = "jediCommand";
+        COMMAND_NAME_HINT = "jediHintCommand",
+        COMMAND_NAME_GOTO = "jediGotoCommand";
     
-    function jediCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
+    function executeHandler(command, callback) {
+        console.log("[Execute]: " + command);
+        process.exec(command, function (err, stdout, stderr) {
+            callback(err ? stderr : undefined, err ? undefined : stdout);
+        });
+    }
+    
+    function jediHintCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
         var tmpPath = modulePath + '/python/jeditmp',
-            command = "python " + modulePath + "/python/jedi-complete.py " + projectRootPath + " " + tmpPath + " " + line + " " + col;
-        console.log("[LOG:jediCommandHandler] command: " + command);
+            command = "python " + modulePath + "/python/jedi-complete.py " + projectRootPath + " " + tmpPath + " " + line + " " + col + " completions";
         
         fs.writeFile(tmpPath, txt, function (err) {
             if (err) {
                 callback(err, undefined);
             }
-            process.exec(command, function (err, stdout, stderr) {
-                callback(err ? stderr : undefined, err ? undefined : stdout);
-            });
+            executeHandler(command, callback);
+        });
+    }
+    
+    function jediGotoCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
+        var tmpPath = modulePath + '/python/jeditmp',
+            command = "python " + modulePath + "/python/jedi-complete.py " + projectRootPath + " " + tmpPath + " " + line + " " + col + " goto";
+        
+        fs.writeFile(tmpPath, txt, function (err) {
+            if (err) {
+                callback(err, undefined);
+            }
+            executeHandler(command, callback);
         });
     }
 
@@ -33,8 +50,8 @@
         
         domainManager.registerCommand(
             DOMAIN_NAME,            // domain name
-            COMMAND_DOMAIN,         // command name for the domain
-            jediCommandHandler,     // command handler function
+            COMMAND_NAME_HINT,         // command name for the domain
+            jediHintCommandHandler,     // command handler function
             true,                   // is-it asynchronous in Node ?
             // The last three parameters to registerCommand are documentation parameters.
             "Run command for Jedi", // Description
@@ -60,6 +77,16 @@
                     type: "int"
                 }
             ],
+            []
+        );
+        
+        domainManager.registerCommand(
+            DOMAIN_NAME,
+            COMMAND_NAME_GOTO,
+            jediGotoCommandHandler,
+            true,
+            "",
+            [],
             []
         );
     }
