@@ -1,11 +1,10 @@
 brackets-python-jedi
 ========================
-Integration of Jedi for Brackets
 
 [brackets-python-jedi](https://github.com/bnogaret/brackets-python-jedi) is a [Brackets](http://brackets.io/) plugin.
 
 
-* [To have more information about Jedi](http://jedi.jedidjah.ch/en/latest/) *
+[To have more information about Jedi](http://jedi.jedidjah.ch/en/latest/)
 
 Work in progress. You can try and give me feedback.
 
