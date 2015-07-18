@@ -20,13 +20,15 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Menus               = brackets.getModule("command/Menus");
     
-    var HintUtils = require("HintUtils");
+    var JediUtils           = require("JediUtils"),
+        InlineDocsWidget    = require("InlineDocsWidget");
     
     var MY_COMMAND_ID       = "bnogaret.brackets-python-jedi",
         MENU_NAME           = "Python Jedi Power over 9000",
         DOMAIN_NAME         = "pythonJedi",
         COMMAND_NAME_HINT   = "jediHintCommand",
-        COMMAND_NAME_GOTO   = "jediGotoCommand";
+        COMMAND_NAME_GOTO   = "jediGotoCommand",
+        COMMAND_NAME_DOC    = "jediDocCommand";
     
     var modulePath          = ExtensionUtils.getModulePath(module),
         nodeConnection      = new NodeConnection(),
@@ -64,7 +66,8 @@ define(function (require, exports, module) {
     }
     
     /**
-        http://brackets.io/docs/current/modules/editor/CodeHintManager.html
+     * Class use for hints
+     * http://brackets.io/docs/current/modules/editor/CodeHintManager.html
     */
     function PythonJediHintProvider() {
         
@@ -73,24 +76,24 @@ define(function (require, exports, module) {
         
         this.hasHints = function (editor, implicitChar) {
             console.log("hasHints");
-            console.log(ProjectManager.getProjectRoot()._path);
+            
             this.editor = editor;
             this.projectRootPath = ProjectManager.getProjectRoot()._path;
             
             var currentToken = this.editor._codeMirror.getTokenAt(this.editor.getCursorPos());
             
-            if (!HintUtils.isHintable(currentToken)) {
+            if (!JediUtils.isHintable(currentToken)) {
                 return false;
             } else {
-                return HintUtils.isValidToken(implicitChar);
+                return JediUtils.isValidToken(implicitChar);
             }
         };
   
         this.getHints = function (implicitChar) {
             console.log("getHints");
-            console.log("implicitChar: " + implicitChar + " et " + HintUtils.isValidToken(implicitChar));
+            console.log("implicitChar: " + implicitChar + " et " + JediUtils.isValidToken(implicitChar));
             
-            if (HintUtils.isValidToken(implicitChar)) {
+            if (JediUtils.isValidToken(implicitChar)) {
                 var deferred = new $.Deferred();
                 
                 var currentLinePosition = this.editor.getCursorPos().line + 1,
@@ -114,7 +117,7 @@ define(function (require, exports, module) {
                         });
                         
                         console.log(hintList);
-                        hintList.sort(HintUtils.compareHint);
+                        hintList.sort(JediUtils.compareHint);
                     
                         deferred.resolve({
                             hints: hintList,
@@ -131,7 +134,7 @@ define(function (require, exports, module) {
         
         this.insertHint = function (hint) {
             console.log("insertHint");
-            console.log("Inserted hint: " + hint);
+            
             var cursor              = this.editor.getCursorPos(),
                 currentToken        =  this.editor._codeMirror.getTokenAt(cursor),
                 startToken          = {line: cursor.line, ch: currentToken.start},
@@ -152,10 +155,13 @@ define(function (require, exports, module) {
         };
     }
     
-    function jumpToDefHandler(editor, cursor) {
+    /**
+     * 
+     */
+    function jumpToDefProvider(editor, cursor) {
         console.log(editor);
         console.log(cursor);
-        if (HintUtils.isLanguagePython(editor.document)) {
+        if (JediUtils.isLanguagePython(editor.document)) {
             var deferred = new $.Deferred(),
                 source = editor.document.getText(),
                 projectRootPath = ProjectManager.getProjectRoot()._path;
@@ -178,12 +184,56 @@ define(function (require, exports, module) {
             return null;
         }
     }
+    
+    
+    function inlineDocsProvider(editor, cursor) {
+        console.log(editor);
+        console.log(cursor);
+        if (JediUtils.isLanguagePython(editor.document)) {
+            var deferred = new $.Deferred(),
+                source = editor.document.getText(),
+                projectRootPath = ProjectManager.getProjectRoot()._path;
+            
+            getJson(COMMAND_NAME_DOC, source, projectRootPath, cursor.line + 1, cursor.ch)
+                .fail(function (err) {
+                    console.log(err);
+                    deferred.reject(err);
+                })
+                .then(function (dataJSON) {
+                    
+                    console.log(dataJSON);
+                    if (dataJSON && dataJSON[0]) {
+                        console.log("Before Inline");
+                        
+                        var inlineDocsWidget = new InlineDocsWidget(JediUtils.jsonToDocsWidget(dataJSON[0]));
+                        
+                        console.log("After Inline");
+                        
+                        inlineDocsWidget.load(editor);
+                        deferred.resolve(inlineDocsWidget);
+                    } else {
+                        deferred.reject();
+                    }
+                    /*
+                    if (!dataJSON[0].path) {
+                        editor.setCursorPos(dataJSON[0].line - 1, dataJSON[0].column);
+                        deferred.resolve();
+                    }
+                    */
+                });
+            
+            return deferred.promise();
+        } else {
+            return null;
+        }
+    }
 
+    
     function menusHandler() {
-        if (HintUtils.isLanguagePython(DocumentManager.getCurrentDocument())) {
+        if (JediUtils.isLanguagePython(DocumentManager.getCurrentDocument())) {
             var editor = EditorManager.getActiveEditor();
             
-            jumpToDefHandler(editor, editor.getCursorPos());
+            jumpToDefProvider(editor, editor.getCursorPos());
             
         } else {
             window.alert("This is not a python file.");
@@ -196,7 +246,9 @@ define(function (require, exports, module) {
         
         CodeHintManager.registerHintProvider(new PythonJediHintProvider(), ["python"], 1);
         
-        EditorManager.registerJumpToDefProvider(jumpToDefHandler);
+        EditorManager.registerJumpToDefProvider(jumpToDefProvider);
+        
+        EditorManager.registerInlineDocsProvider(inlineDocsProvider);
     });
 
 

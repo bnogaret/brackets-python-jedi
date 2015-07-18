@@ -1,0 +1,168 @@
+/* Colors */
+@bc-btn-bg: #e5e9e9;
+@bc-btn-border: #b2b5b5;
+@bc-highlight: rgba(255, 255, 255, 0.12);
+@bc-panel-separator: #c3c6c5;
+@bc-text: #333;
+@bc-text-thin-quiet: #777;
+
+/* Typography */
+@font-weight-semibold: 520;
+
+// Used to avoid overlapping CM scrollbar - Hack
+@scrollbar-wid: 17px;
+
+
+/* Overall inline widget content container */
+.brackets-python-jedi {
+    margin-left: 20px;
+    
+    color: @bc-text-thin-quiet;
+    
+    /* Enable text selection */
+    cursor: auto;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    -o-user-select: text;
+    user-select: text;
+    
+    &:focus {
+        outline: none;
+    }
+    
+    font-family: SourceSansPro;
+    font-size: 14px;
+    
+    h1 {
+        color: @bc-text;
+        font-size: 18px;
+        font-weight: @font-weight-semibold;
+        line-height: normal;
+        margin: 15px 0 9px 0;
+    }
+    
+    b {
+        font-weight: @font-weight-semibold;
+    }
+    
+    .main {
+        box-sizing: border-box;
+        padding-left: 20px;
+        word-wrap: break-word;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+    }
+
+    .second {
+        box-sizing: border-box; //for exact dimension
+        width: 100%;
+        padding-left: 20px;
+
+        .scroller {
+            max-height: 300px;
+            overflow-y: auto;
+
+            margin: 20px (@scrollbar-wid + 4px) 0 0;
+
+            &:focus {
+                outline: none;
+            }
+        }
+
+        dl {
+            margin-top: 0px;
+
+            dt {
+                color: @bc-text;
+                font-size: 13px;
+                font-weight: @font-weight-semibold;
+                margin-bottom: 2px;
+                margin-top: 4px;
+            }
+
+            dd {
+                // some styles must specifically be on <p> to override Bootstrap
+                p, li, b {
+                    font-size: 13px;
+                    font-style: normal;
+                    line-height: 18px;
+                    margin-bottom: 15px;
+                }
+                line-height: 18px;
+                margin-left: 20px;
+                margin-right: 0px;
+                margin-bottom: -2px; // remove extra spacing between dt-dd pairs
+                padding-bottom: 0px;
+            }
+        }
+    }
+    
+    .horizontal-divider {
+        width: 100%;
+        border-top: 1px solid @bc-panel-separator;
+    }
+
+    .content-bottom {
+        // Used to pull bottom edge of .css-prop-defn down below its two floated children.
+        // Also prevents .more-info (after us in DOM order) from overlapping the float: right content.
+        clear: both;
+        height: 15px;
+    }
+    
+    .css-module {
+        position: absolute;
+        bottom: 0px;
+        left: 50px;
+        padding: 5px 20px 5px 20px;
+
+        border: 1px solid @bc-btn-border;
+        border-radius: 3px 3px 0 0;
+        border-bottom: none;
+        box-shadow: inset 0 1px 0 @bc-highlight;  // white chisel along top edge
+
+        font-size: 12px;
+        font-weight: @font-weight-semibold;
+        color: @bc-text;
+        text-shadow: 0 1px 0 @bc-highlight;
+        &:hover {
+            text-decoration: none;
+        }
+    }
+}
+
+
+/* Dark UI Theme */
+@dark-bc-highlight: rgba(255, 255, 255, 0.06);
+@dark-bc-text: #ccc;
+@dark-bc-text-thin-quiet: #bbb;
+@dark-bc-btn-bg: #3f3f3f;
+@dark-bc-btn-border: #202020;
+@dark-bc-panel-separator: #343434;
+
+.dark {
+    .brackets-python-jedi {
+        color: @dark-bc-text-thin-quiet;
+        
+        h1, b {
+            color: @dark-bc-text;
+        }
+
+        .css-module {
+            background-color: @dark-bc-btn-bg;
+            border: 1px solid @dark-bc-btn-border;
+            box-shadow: inset 0 1px 0 @dark-bc-highlight;
+            color: @dark-bc-text;
+            text-shadow: 0 1px 0 @dark-bc-highlight;
+        }
+
+        dl dt {
+            color: @dark-bc-text;
+        }
+
+        .horizontal-divider {
+            border-left: 1px solid @dark-bc-panel-separator;
+        }
+    }
+}

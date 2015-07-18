@@ -1,0 +1,22 @@
+<div class="brackets-python-jedi" tabIndex="0"> <!-- tabIndex needed: otherwise click focuses CodeMirror scroller and Esc won't work -->
+    <div class="main">
+        <h1>{{propName}}</h1>
+        <em>{{propFullName}}</em>
+    </div>
+    
+    <div class="horizontal-divider">
+    </div>
+    
+    <div class="second quiet-scrollbars">
+        <div class="scroller" tabIndex="0"> <!-- tabIndex needed: otherwise can't be focused on open or via click -->
+            <dl>
+                {{#propValues}}
+                <dt>{{{value}}}</dt>
+                <dd>{{{description}}}</dd>
+                {{/propValues}}
+            </dl>
+        </div>
+    </div>
+    <div class="content-bottom"></div>
+    <div class="css-module">Module : {{{propModule}}}</div>
+</div>

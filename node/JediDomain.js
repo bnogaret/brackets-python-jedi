@@ -5,12 +5,13 @@
 (function () {
     "use strict";
     
-    var process = require('child_process'),
-        fs      = require('fs');
+    var process             = require('child_process'),
+        fs                  = require('fs');
     
-    var DOMAIN_NAME = "pythonJedi",
-        COMMAND_NAME_HINT = "jediHintCommand",
-        COMMAND_NAME_GOTO = "jediGotoCommand";
+    var DOMAIN_NAME         = "pythonJedi",
+        COMMAND_NAME_HINT   = "jediHintCommand",
+        COMMAND_NAME_GOTO   = "jediGotoCommand",
+        COMMAND_NAME_DOC    = "jediDocCommand";
     
     function executeHandler(command, callback) {
         console.log("[Execute]: " + command);
@@ -42,6 +43,18 @@
             executeHandler(command, callback);
         });
     }
+    
+    function jediDocCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
+        var tmpPath = modulePath + '/python/jeditmp',
+            command = "python " + modulePath + "/python/jedi-complete.py " + projectRootPath + " " + tmpPath + " " + line + " " + col + " documentation";
+        
+        fs.writeFile(tmpPath, txt, function (err) {
+            if (err) {
+                callback(err, undefined);
+            }
+            executeHandler(command, callback);
+        });
+    }
 
     function init(domainManager) {
         if (!domainManager.hasDomain(DOMAIN_NAME)) {
@@ -54,7 +67,7 @@
             jediHintCommandHandler,     // command handler function
             true,                   // is-it asynchronous in Node ?
             // The last three parameters to registerCommand are documentation parameters.
-            "Run command for Jedi", // Description
+            "Hint command for Jedi", // Description
             [                       // List parameters
                 {
                     name: "modulePath",
@@ -84,6 +97,16 @@
             DOMAIN_NAME,
             COMMAND_NAME_GOTO,
             jediGotoCommandHandler,
+            true,
+            "",
+            [],
+            []
+        );
+        
+        domainManager.registerCommand(
+            DOMAIN_NAME,
+            COMMAND_NAME_DOC,
+            jediDocCommandHandler,
             true,
             "",
             [],

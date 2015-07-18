@@ -3,7 +3,12 @@ import requests
 variable = "HEY !"
 
 class ClassTest:
+    
+    # This is a description
     def rere(self):
+        """
+        Docstring power
+        """
         print("Hey");
 
 for i in range():
@@ -25,5 +30,5 @@ class newTest:
     def relative():
         print("5");
 
-i = newTest()
+iii = newTest()
 requests.get()

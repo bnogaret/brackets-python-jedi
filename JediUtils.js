@@ -59,8 +59,59 @@ define(function (require, exports, module) {
         
     }
     
-    exports.isHintable = isHintable;
-    exports.isLanguagePython = isLanguagePython;
-    exports.compareHint = compareHint;
-    exports.isValidToken = isValidToken;
+    /**
+     * 
+     */
+    function encodeToHtml(str) {
+        return str
+            .trim()
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\n/g, '<br />');
+    }
+    
+    /**
+     *
+     */
+    function jsonToDocsWidget(json) {
+        var list = [];
+        list.push({
+            value       : "Type :",
+            description : json.type
+        });
+        
+        if (json.description) {
+            list.push({
+                value       : "Description :",
+                description : json.description
+            });
+        }
+        
+        if (json.docstring) {
+            list.push({
+                value       : "Docs :",
+                description : encodeToHtml(json.docstring)
+            });
+        }
+        
+        var template = {
+            propName : json.name,
+            propFullName : json.fullname,
+            propValues : list,
+            propModule : json.moduleName ? json.moduleName : "<i>Not defined</i>"
+        };
+        
+        return template;
+    }
+    
+    
+    exports.isHintable          = isHintable;
+    exports.isLanguagePython    = isLanguagePython;
+    exports.compareHint         = compareHint;
+    exports.isValidToken        = isValidToken;
+    exports.encodeToHtml        = encodeToHtml;
+    exports.jsonToDocsWidget    = jsonToDocsWidget;
 });
