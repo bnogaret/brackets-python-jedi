@@ -24,7 +24,6 @@ Work in progress. You can try and give me feedback.
 
 
 ## Problems:
-* when ( or . and add hint : delete last charachter
 * "[ERROR:getHint] domain:  cleanup" or "[ERROR:getHint] result:  cleanup"
 * multiple "same" word (but not the same meanings)
 * not at all efficient ! (slow down Brackets)

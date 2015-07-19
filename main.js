@@ -151,9 +151,15 @@ define(function (require, exports, module) {
             currentToken        =  this.editor._codeMirror.getTokenAt(cursor),
             startToken          = {line: cursor.line, ch: currentToken.start},
             endToken            = {line: cursor.line, ch: cursor.ch};
-
-        // Hack : should use Document but it seems there is a problem
-        this.editor.document.replaceRange(hint, startToken, endToken);
+                
+        // Test equivalent to startsWith
+        if (hint.indexOf(currentToken.string) === 0) {
+            // Hack : should use Document but it seems there is a problem
+            this.editor.document.replaceRange(hint, startToken, endToken);
+        } else {
+            // Case we add a hint after . or ( : we don't delete this character with the replaceRange
+            this.editor.document.replaceRange(currentToken.string + hint, startToken, endToken);
+        }
 
         // When a function, move the cursor inside the ()
         if (hint.slice(-1) === ")") {
