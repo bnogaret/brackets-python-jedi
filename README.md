@@ -32,5 +32,4 @@ Work in progress. You can try and give me feedback.
 
 
 ## Future:
-* Add code style checking (i.e. pep8)
 * Better sorted list (variable first, then function ...)

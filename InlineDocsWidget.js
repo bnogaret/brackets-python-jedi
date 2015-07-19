@@ -13,7 +13,7 @@ define(function (require, exports, module) {
      // Load template
     var inlineDocsTemplate  = require("text!./templates/InlineDocsWidget.html");
     
-    // Load CSS
+    // Load LESS file
     ExtensionUtils.loadStyleSheet(module, "InlineDocsWidget.less");
     
     function InlineDocsWidget(templateVars) {
