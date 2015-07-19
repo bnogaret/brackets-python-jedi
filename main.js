@@ -68,94 +68,106 @@ define(function (require, exports, module) {
     /**
      * Class use for hints
      * http://brackets.io/docs/current/modules/editor/CodeHintManager.html
-    */
-    function PythonJediHintProvider() {
-        
-        var editor,
-            projectRootPath;
-        
-        this.hasHints = function (editor, implicitChar) {
-            console.log("hasHints");
-            
-            this.editor = editor;
-            this.projectRootPath = ProjectManager.getProjectRoot()._path;
-            
-            var currentToken = this.editor._codeMirror.getTokenAt(this.editor.getCursorPos());
-            
-            if (!JediUtils.isHintable(currentToken)) {
-                return false;
-            } else {
-                return JediUtils.isValidToken(implicitChar);
-            }
-        };
-  
-        this.getHints = function (implicitChar) {
-            console.log("getHints");
-            console.log("implicitChar: " + implicitChar + " et " + JediUtils.isValidToken(implicitChar));
-            
-            if (JediUtils.isValidToken(implicitChar)) {
-                var deferred = new $.Deferred();
-                
-                var currentLinePosition = this.editor.getCursorPos().line + 1,
-                    currentColPosition = this.editor.getCursorPos().ch;
-                
-                getJson(COMMAND_NAME_HINT, this.editor.document.getText(), this.projectRootPath, currentLinePosition, currentColPosition)
-                    .fail(function (err) {
-                        deferred.reject(err);
-                    })
-                    .then(function (dataJSON) {
-                        var hintList = [];
-                        
-                        console.log("Done:" + JSON.stringify(dataJSON));
-                        
-                        dataJSON.forEach(function (node, number) {
-                            if (node.type === "function") {
-                                hintList.push(node.name + "()");
-                            } else {
-                                hintList.push(node.name);
-                            }
-                        });
-                        
-                        hintList.sort(JediUtils.compareHint);
-                    
-                        deferred.resolve({
-                            hints: hintList,
-                            match: false,
-                            selectInitial: true,
-                            handleWideResults: false
-                        });
-                    });
-                return deferred;
-            } else {
-                return false;
-            }
-        };
-        
-        this.insertHint = function (hint) {
-            console.log("insertHint");
-            
-            var cursor              = this.editor.getCursorPos(),
-                currentToken        =  this.editor._codeMirror.getTokenAt(cursor),
-                startToken          = {line: cursor.line, ch: currentToken.start},
-                endToken            = {line: cursor.line, ch: cursor.ch};
-            
-            // Hack : should use Document but it seems there is a problem
-            this.editor.document.replaceRange(hint, startToken, endToken);
-            
-            // When a function, move the cursor inside the ()
-            if (hint.slice(-1) === ")") {
-                cursor = this.editor.getCursorPos();
-                this.editor.setCursorPos({
-                    line: cursor.line,
-                    ch: cursor.ch - 1
-                });
-            }
-            return false;
-        };
-    }
+     * @constructor
+     */
+    function JediHint() {}
+    
+    JediHint.prototype.editor = null;
+    JediHint.prototype.projectRootPath = null;
     
     /**
+     * Determine for the current context whether JediHint can propose hints or not
+     */
+    JediHint.prototype.hasHints = function (editor, implicitChar) {
+        console.log("hasHints");
+
+        this.editor = editor;
+        this.projectRootPath = ProjectManager.getProjectRoot()._path;
+
+        var currentToken = this.editor._codeMirror.getTokenAt(this.editor.getCursorPos());
+
+        if (!JediUtils.isHintable(currentToken)) {
+            return false;
+        } else {
+            return JediUtils.isValidToken(implicitChar);
+        }
+    };
+    
+    /**
+     * Returns a list of available url hints, if possible, for the current editor context.
+     * hasHints must have returned true before.
+     */
+    JediHint.prototype.getHints = function (implicitChar) {
+        console.log("getHints");
+        console.log("implicitChar: " + implicitChar + " et " + JediUtils.isValidToken(implicitChar));
+
+        if (JediUtils.isValidToken(implicitChar)) {
+            var deferred = new $.Deferred();
+
+            var currentLinePosition = this.editor.getCursorPos().line + 1,
+                currentColPosition = this.editor.getCursorPos().ch;
+
+            getJson(COMMAND_NAME_HINT, this.editor.document.getText(), this.projectRootPath, currentLinePosition, currentColPosition)
+                .fail(function (err) {
+                    deferred.reject(err);
+                })
+                .then(function (dataJSON) {
+                    var hintList = [];
+
+                    console.log("Done:" + JSON.stringify(dataJSON));
+
+                    dataJSON.forEach(function (node, number) {
+                        if (node.type === "function") {
+                            hintList.push(node.name + "()");
+                        } else {
+                            hintList.push(node.name);
+                        }
+                    });
+
+                    hintList.sort(JediUtils.compareHint);
+
+                    deferred.resolve({
+                        hints: hintList,
+                        match: false,
+                        selectInitial: true,
+                        handleWideResults: false
+                    });
+                });
+            return deferred;
+        } else {
+            return false;
+        }
+    };
+    
+    /**
+     * Insert a given hint into the current editor context (current cursor position)
      * 
+     * Currently, it always return false (the manager should NOT follow this insertion with an additional explicit hint request)
+     */
+    JediHint.prototype.insertHint = function (hint) {
+        console.log("insertHint");
+
+        var cursor              = this.editor.getCursorPos(),
+            currentToken        =  this.editor._codeMirror.getTokenAt(cursor),
+            startToken          = {line: cursor.line, ch: currentToken.start},
+            endToken            = {line: cursor.line, ch: cursor.ch};
+
+        // Hack : should use Document but it seems there is a problem
+        this.editor.document.replaceRange(hint, startToken, endToken);
+
+        // When a function, move the cursor inside the ()
+        if (hint.slice(-1) === ")") {
+            cursor = this.editor.getCursorPos();
+            this.editor.setCursorPos({
+                line: cursor.line,
+                ch: cursor.ch - 1
+            });
+        }
+        return false;
+    };
+    
+    /*
+     * Provider for "Jump to definition" (ctrl + j)
      */
     function jumpToDefProvider(editor, cursor) {
         console.log(editor);
@@ -183,8 +195,10 @@ define(function (require, exports, module) {
             return null;
         }
     }
-    
-    
+        
+    /*
+     * Provider for "Quick Docs" (ctrl + k)
+     */
     function inlineDocsProvider(editor, cursor) {
         console.log(editor);
         console.log(cursor);
@@ -237,7 +251,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         console.log(modulePath);
         
-        CodeHintManager.registerHintProvider(new PythonJediHintProvider(), ["python"], 1);
+        CodeHintManager.registerHintProvider(new JediHint(), ["python"], 1);
         
         EditorManager.registerJumpToDefProvider(jumpToDefProvider);
         
