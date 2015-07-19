@@ -5,11 +5,11 @@ define(function (require, exports, module) {
     "use strict";
     
     var LANGUAGE_PYHTON_ID = "python",
-        ignoredChar = [' ', '+', '-', '/', '*', '(', ')', '[', ']', ':', ',', '<', '>', '.', '{', '}', '=', '%', '!'];
+        IGNORED_CHARACTERS = [' ', '+', '-', '/', '*', '(', ')', '[', ']', ':', ',', '<', '>', '{', '}', '=', '%', '!'];
     
     /**
      * Is the token hintable ? No if inside a comment or inside a string
-     * @param
+     * @param token
      * @return {boolean}
      */
     function isHintable(token) {
@@ -27,7 +27,7 @@ define(function (require, exports, module) {
             var code = implicitChar.charCodeAt(0);
             // Unicode 13 : carrage return
             // Unicode 9 : tabulation
-            return (ignoredChar.indexOf(implicitChar) === -1) && (code !== 13) && (code !== 9);
+            return (IGNORED_CHARACTERS.indexOf(implicitChar) === -1) && (code !== 13) && (code !== 9);
         } else {
             return true;
         }
@@ -60,7 +60,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * 
+     * Replace special characters (>, &, ...) from str by their html equivalents
      */
     function encodeToHtml(str) {
         return str
@@ -70,11 +70,12 @@ define(function (require, exports, module) {
             .replace(/'/g, '&#39;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
+            .replace(/[\n]{2,}/g, '<br /><br />') // Avoid having lots of space
             .replace(/\n/g, '<br />');
     }
     
     /**
-     *
+     * Create the var template for InlineDocsWidget from the json return by jedi-complete.py (getDocumentation)
      */
     function jsonToDocsWidget(json) {
         var list = [];
@@ -101,7 +102,7 @@ define(function (require, exports, module) {
             propName : json.name,
             propFullName : json.fullname,
             propValues : list,
-            propModule : json.moduleName ? json.moduleName : "<i>Not defined</i>"
+            propModule : json.moduleName || "<i>Not defined</i>"
         };
         
         return template;

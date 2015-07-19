@@ -1,17 +1,19 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4 */
-/*global exports, require, $ */
+/*global exports, require, $, brackets */
 
 
 (function () {
     "use strict";
     
-    var process             = require('child_process'),
-        fs                  = require('fs');
+    var process                 = require('child_process'),
+        fs                      = require('fs');
     
-    var DOMAIN_NAME         = "pythonJedi",
-        COMMAND_NAME_HINT   = "jediHintCommand",
-        COMMAND_NAME_GOTO   = "jediGotoCommand",
-        COMMAND_NAME_DOC    = "jediDocCommand";
+    var DOMAIN_NAME             = "pythonJedi",
+        COMMAND_NAME_HINT       = "jediHintCommand",
+        COMMAND_NAME_GOTO       = "jediGotoCommand",
+        COMMAND_NAME_DOC        = "jediDocCommand",
+        RELATIVE_PATH_FILE      = "python/jeditmp",
+        RELATIVE_PATH_SCRIPT    = "python/jedi-complete.py";
     
     function executeHandler(command, callback) {
         console.log("[Execute]: " + command);
@@ -21,10 +23,11 @@
     }
     
     function jediHintCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
-        var tmpPath = modulePath + '/python/jeditmp',
-            command = "python " + modulePath + "/python/jedi-complete.py " + projectRootPath + " " + tmpPath + " " + line + " " + col + " completions";
+        var pathFileTmp = modulePath + RELATIVE_PATH_FILE,
+            pathScript = modulePath + RELATIVE_PATH_SCRIPT,
+            command = "python " + pathScript + " " + projectRootPath + " " + pathFileTmp + " " + line + " " + col + " " + "completions";
         
-        fs.writeFile(tmpPath, txt, function (err) {
+        fs.writeFile(pathFileTmp, txt, function (err) {
             if (err) {
                 callback(err, undefined);
             }
@@ -33,10 +36,11 @@
     }
     
     function jediGotoCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
-        var tmpPath = modulePath + '/python/jeditmp',
-            command = "python " + modulePath + "/python/jedi-complete.py " + projectRootPath + " " + tmpPath + " " + line + " " + col + " goto";
+        var pathFileTmp = modulePath + RELATIVE_PATH_FILE,
+            pathScript = modulePath + RELATIVE_PATH_SCRIPT,
+            command = "python " + pathScript + " " + projectRootPath + " " + pathFileTmp + " " + line + " " + col + " " + "goto";
         
-        fs.writeFile(tmpPath, txt, function (err) {
+        fs.writeFile(pathFileTmp, txt, function (err) {
             if (err) {
                 callback(err, undefined);
             }
@@ -45,10 +49,11 @@
     }
     
     function jediDocCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
-        var tmpPath = modulePath + '/python/jeditmp',
-            command = "python " + modulePath + "/python/jedi-complete.py " + projectRootPath + " " + tmpPath + " " + line + " " + col + " documentation";
+        var pathFileTmp = modulePath + RELATIVE_PATH_FILE,
+            pathScript = modulePath + RELATIVE_PATH_SCRIPT,
+            command = "python " + pathScript + " " + projectRootPath + " " + pathFileTmp + " " + line + " " + col + " " + "documentation";
         
-        fs.writeFile(tmpPath, txt, function (err) {
+        fs.writeFile(pathFileTmp, txt, function (err) {
             if (err) {
                 callback(err, undefined);
             }

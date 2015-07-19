@@ -5,7 +5,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
         InlineWidget        = brackets.getModule("editor/InlineWidget").InlineWidget,
         KeyEvent            = brackets.getModule("utils/KeyEvent");
     
@@ -24,23 +23,6 @@ define(function (require, exports, module) {
         
         this.$wrapperDiv = $(html);
         this.$htmlContent.append(this.$wrapperDiv);
-        
-        // Preprocess link tags to make URLs absolute
-        this.$wrapperDiv.find("a").each(function (index, elem) {
-            var $elem = $(elem);
-            var url = $elem.attr("href");
-            if (url) {
-                if (url.charAt(0) === "#") {
-                    // Anchors in JSON data are relative to page URL
-                    url = templateVars.url + url;
-                } else if (url.substr(0, 4) !== "http") {
-                    // URLs in JSON data are relative
-                    url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url;
-                }
-                $elem.attr("href", url);
-            }
-            $elem.attr("title", url);
-        });
         
         this._sizeEditorToContent   = this._sizeEditorToContent.bind(this);
         this._handleWheelScroll     = this._handleWheelScroll.bind(this);
@@ -123,12 +105,10 @@ define(function (require, exports, module) {
             scrollPos = Math.max(0, scrollPos - scroller.clientHeight);
             break;
         case KeyEvent.DOM_VK_DOWN:
-            scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight,
-                                 scrollPos + SCROLL_LINE_HEIGHT);
+            scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight, scrollPos + SCROLL_LINE_HEIGHT);
             break;
         case KeyEvent.DOM_VK_PAGE_DOWN:
-            scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight,
-                                 scrollPos + scroller.clientHeight);
+            scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight, scrollPos + scroller.clientHeight);
             break;
         default:
             // Ignore other keys

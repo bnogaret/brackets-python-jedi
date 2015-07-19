@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4 */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window */
 
 
 /** 
@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     
     var modulePath          = ExtensionUtils.getModulePath(module),
         nodeConnection      = new NodeConnection(),
-        domainPath          = ExtensionUtils.getModulePath(module) + "/node/JediDomain",
+        domainPath          = ExtensionUtils.getModulePath(module) + "node/JediDomain",
         pythonJediDomain    = new NodeDomain(DOMAIN_NAME, ExtensionUtils.getModulePath(module, "node/JediDomain"));
     
     /**
@@ -116,7 +116,6 @@ define(function (require, exports, module) {
                             }
                         });
                         
-                        console.log(hintList);
                         hintList.sort(JediUtils.compareHint);
                     
                         deferred.resolve({
@@ -214,12 +213,6 @@ define(function (require, exports, module) {
                     } else {
                         deferred.reject();
                     }
-                    /*
-                    if (!dataJSON[0].path) {
-                        editor.setCursorPos(dataJSON[0].line - 1, dataJSON[0].column);
-                        deferred.resolve();
-                    }
-                    */
                 });
             
             return deferred.promise();

@@ -40,7 +40,7 @@
         font-size: 18px;
         font-weight: @font-weight-semibold;
         line-height: normal;
-        margin: 15px 0 9px 0;
+        margin: 15px 0 5px 0;
     }
     
     b {
@@ -59,12 +59,13 @@
         box-sizing: border-box; //for exact dimension
         width: 100%;
         padding-left: 20px;
+        padding-bottom: 20px; // for .css-module
 
         .scroller {
             max-height: 300px;
             overflow-y: auto;
 
-            margin: 20px (@scrollbar-wid + 4px) 0 0;
+            margin: 10px (@scrollbar-wid + 4px) 0 0;
 
             &:focus {
                 outline: none;
@@ -102,13 +103,7 @@
     .horizontal-divider {
         width: 100%;
         border-top: 1px solid @bc-panel-separator;
-    }
-
-    .content-bottom {
-        // Used to pull bottom edge of .css-prop-defn down below its two floated children.
-        // Also prevents .more-info (after us in DOM order) from overlapping the float: right content.
-        clear: both;
-        height: 15px;
+        margin-top: 5px;
     }
     
     .css-module {
