@@ -11,24 +11,26 @@ Work in progress. You can try and give me feedback.
 
 ## Shortcuts:
 * <kbd>Ctrl</kbd>+<kbd>Space</kbd> : force to show hints
-* <kbd>Ctrl</kbd>+<kbd>J</kbd> : jump to definitions or assignments
+* <kbd>Ctrl</kbd>+<kbd>j</kbd> : jump to definitions or assignments
+* <kbd>Ctrm</kbd>+<kbd>k</kbd> : get documentation
 
 
 ## TODO:
 * Test on Windows (can't test on Mac)
 * No hint when current token < 2 or 3 ?
-* Too many answers ? Sort the list (variable, then function, ...) ?
 * Use child_process.spawn ?
-* Should I really include directly Jedi ?
 * Add color for proposition (as JS hint in Brackets)
 * Cache for getHints ?
-* let the '.' in ignoredChar ?
-* handler to have documentation ?
-* Add code style checking (i.e. pep8)
 
 
 ## Problems:
 * when ( or . and add hint : delete last charachter
 * "[ERROR:getHint] domain:  cleanup" or "[ERROR:getHint] result:  cleanup"
-* multiple "same" word
+* multiple "same" word (but not the same meanings)
 * not at all efficient ! (slow down Brackets)
+* Should I really include directly Jedi ?
+
+
+## Future:
+* Add code style checking (i.e. pep8)
+* Better sorted list (variable first, then function ...)
