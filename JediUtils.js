@@ -8,7 +8,7 @@ define(function (require, exports, module) {
         IGNORED_CHARACTERS = [' ', '+', '-', '/', '*', '(', ')', '[', ']', ':', ',', '<', '>', '{', '}', '=', '%', '!'];
     
     /**
-     * Is the token hintable ? No if inside a comment or inside a string and is too short (number of characters < 3)
+     * Is the token hintable ? No if inside a comment or inside a string, true otherwise.
      * @param token
      * @return {boolean}
      */
@@ -19,22 +19,48 @@ define(function (require, exports, module) {
         case "string":
             return false;
         default:
-            break;
+            return true;
         }
-        
-        if (token.string.length < 3) {
-            return false;
-        }
-        
-        return true;
     }
     
-    function isValidToken(implicitChar) {
+    /**
+     * Is the token long enough  (length >= 3) ?
+     * @param token
+     * @return {boolean}
+     */
+    function isTokenLongEnough(token) {
+        if (token.string.length < 3) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
+    /**
+     * Check if the character is valid (is neither carrage return, nor tabulation nor a ignored character (doesn't belong to IGNORED_CHARACTERS))
+     * @param implicitChar
+     * @return {boolean}
+     */
+    function isValidChar(implicitChar) {
         if (implicitChar) {
             var code = implicitChar.charCodeAt(0);
             // Unicode 13 : carrage return
             // Unicode 9 : tabulation
             return (IGNORED_CHARACTERS.indexOf(implicitChar) === -1) && (code !== 13) && (code !== 9);
+        } else { // This is the case when the user force it (ctrl + space) [But there are other cases too]
+            return true;
+        }
+    }
+    
+    /**
+     * Is the token long enough (> 3) and the implicit character valid
+     * @param token
+     * @param char
+     * @return {boolean}
+     */
+    function isValidForHint(token, char) {
+        if (char) {
+            return isValidChar(char) && isTokenLongEnough(token);
         } else {
             return true;
         }
@@ -117,9 +143,11 @@ define(function (require, exports, module) {
     
     
     exports.isHintable          = isHintable;
+    exports.isTokenLongEnough   = isTokenLongEnough;
     exports.isLanguagePython    = isLanguagePython;
+    exports.isValidChar         = isValidChar;
+    exports.isValidForHint      = isValidForHint;
     exports.compareHint         = compareHint;
-    exports.isValidToken        = isValidToken;
     exports.encodeToHtml        = encodeToHtml;
     exports.jsonToDocsWidget    = jsonToDocsWidget;
 });

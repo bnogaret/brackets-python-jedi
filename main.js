@@ -93,7 +93,7 @@ define(function (require, exports, module) {
         if (!JediUtils.isHintable(currentToken)) {
             return false;
         } else {
-            return JediUtils.isValidToken(implicitChar);
+            return JediUtils.isValidForHint(currentToken, implicitChar);
         }
     };
     
@@ -104,7 +104,7 @@ define(function (require, exports, module) {
     JediHint.prototype.getHints = function (implicitChar) {
         console.log("getHints");
 
-        if (JediUtils.isValidToken(implicitChar)) {
+        if (JediUtils.isValidChar(implicitChar)) {
             var deferred = new $.Deferred();
 
             var currentLinePosition = this.editor.getCursorPos().line + 1,
