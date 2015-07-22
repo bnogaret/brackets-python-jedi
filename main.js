@@ -47,22 +47,21 @@ define(function (require, exports, module) {
         }
         
         nodeConnection.connect(true).fail(function (err) {
-            console.error("[ERROR:getJson] connect to node: ", err);
+            console.error("[getJson] connect to node: ", err);
             deferred.reject(err);
         }).then(function () {
             return nodeConnection.loadDomains([domainPath], true)
                 .fail(function (err) {
-                    console.error("[ERROR:getJson] domain: ", err);
+                    console.error("[getJson] domain: ", err);
+                    deferred.reject(err);
                 });
         }).then(function () {
             nodeConnection.domains[DOMAIN_NAME][call](modulePath, projectRootPath, pythonCode, currentLine, currentCol)
                 .fail(function (err) {
-                    console.error("[ERROR:getJson] result: ", err);
+                    console.error("[getJson] result: ", err);
                     deferred.reject(err);
                 })
                 .done(function (data) {
-                    console.log("Data:" + data);
-
                     deferred.resolve(JSON.parse(data));
                 });
         });
@@ -113,12 +112,13 @@ define(function (require, exports, module) {
 
             getJson(COMMAND_NAME_HINT, this.editor.document.getText(), this.projectRootPath, currentLinePosition, currentColPosition)
                 .fail(function (err) {
+                    console.error("[getHints]: " + err);
                     deferred.reject(err);
                 })
                 .then(function (dataJSON) {
                     var hintList = [];
 
-                    console.log("[getHints] : Done:" + JSON.stringify(dataJSON));
+                    console.log("[getHints]: " + JSON.stringify(dataJSON));
 
                     dataJSON.forEach(function (node, number) {
                         if (node.type === "function") {
@@ -180,8 +180,6 @@ define(function (require, exports, module) {
      * Provider for "Jump to definition" (ctrl + j)
      */
     function jumpToDefProvider(editor, cursor) {
-        console.log(editor);
-        console.log(cursor);
         if (JediUtils.isLanguagePython(editor.document)) {
             var deferred = new $.Deferred(),
                 source = editor.document.getText(),
@@ -189,15 +187,15 @@ define(function (require, exports, module) {
             
             getJson(COMMAND_NAME_GOTO, source, projectRootPath, cursor.line + 1, cursor.ch)
                 .fail(function (err) {
-                    console.log(err);
+                    console.error("[jumpToDefProvider]:" + err);
                     deferred.reject(err);
                 })
                 .then(function (dataJSON) {
                     console.log(dataJSON);
                     if (!dataJSON[0].path) {
                         editor.setCursorPos(dataJSON[0].line - 1, dataJSON[0].column);
-                        deferred.resolve();
                     }
+                    deferred.resolve();
                 });
             
             return deferred;
@@ -219,18 +217,14 @@ define(function (require, exports, module) {
             
             getJson(COMMAND_NAME_DOC, source, projectRootPath, cursor.line + 1, cursor.ch)
                 .fail(function (err) {
-                    console.log(err);
+                    console.error("[inlineDocsProvider]:" + err);
                     deferred.reject(err);
                 })
                 .then(function (dataJSON) {
                     
                     console.log(dataJSON);
                     if (dataJSON && dataJSON[0]) {
-                        console.log("Before Inline");
-                        
                         var inlineDocsWidget = new InlineDocsWidget(JediUtils.jsonToDocsWidget(dataJSON[0]));
-                        
-                        console.log("After Inline");
                         
                         inlineDocsWidget.load(editor);
                         deferred.resolve(inlineDocsWidget);

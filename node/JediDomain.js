@@ -25,7 +25,7 @@
     function jediHintCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
         var pathFileTmp = modulePath + RELATIVE_PATH_FILE,
             pathScript = modulePath + RELATIVE_PATH_SCRIPT,
-            command = "python " + pathScript + " " + projectRootPath + " " + pathFileTmp + " " + line + " " + col + " " + "completions";
+            command = "python" + " " + pathScript + " " + projectRootPath + " " + pathFileTmp + " " + line + " " + col + " " + "completions";
         
         fs.writeFile(pathFileTmp, txt, function (err) {
             if (err) {
@@ -38,7 +38,7 @@
     function jediGotoCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
         var pathFileTmp = modulePath + RELATIVE_PATH_FILE,
             pathScript = modulePath + RELATIVE_PATH_SCRIPT,
-            command = "python " + pathScript + " " + projectRootPath + " " + pathFileTmp + " " + line + " " + col + " " + "goto";
+            command = "python" + " " + pathScript + " " + projectRootPath + " " + pathFileTmp + " " + line + " " + col + " " + "goto";
         
         fs.writeFile(pathFileTmp, txt, function (err) {
             if (err) {
@@ -51,7 +51,7 @@
     function jediDocCommandHandler(modulePath, projectRootPath, txt, line, col, callback) {
         var pathFileTmp = modulePath + RELATIVE_PATH_FILE,
             pathScript = modulePath + RELATIVE_PATH_SCRIPT,
-            command = "python " + pathScript + " " + projectRootPath + " " + pathFileTmp + " " + line + " " + col + " " + "documentation";
+            command = "python" + " " + pathScript + " " + projectRootPath + " " + pathFileTmp + " " + line + " " + col + " " + "documentation";
         
         fs.writeFile(pathFileTmp, txt, function (err) {
             if (err) {
@@ -72,7 +72,7 @@
             jediHintCommandHandler,     // command handler function
             true,                   // is-it asynchronous in Node ?
             // The last three parameters to registerCommand are documentation parameters.
-            "Hint command for Jedi", // Description
+            "Hint command (using Jedi)", // Description
             [                       // List parameters
                 {
                     name: "modulePath",
@@ -103,7 +103,7 @@
             COMMAND_NAME_GOTO,
             jediGotoCommandHandler,
             true,
-            "",
+            "Goto command (using Jedi)",
             [],
             []
         );
@@ -113,7 +113,7 @@
             COMMAND_NAME_DOC,
             jediDocCommandHandler,
             true,
-            "",
+            "Get documentation (using Jedi)",
             [],
             []
         );

@@ -17,17 +17,17 @@ Work in progress. You can try and give me feedback.
 
 ## TODO:
 * Test on Windows (can't test on Mac)
-* Use child_process.spawn ?
 * Add color for proposition (as JS hint in Brackets)
-* Cache for getHints ?
+* Jump to def vers un autre fichier
 
 
 ## Problems:
 * "[ERROR:getHint] domain:  cleanup" or "[ERROR:getHint] result:  cleanup"
 * multiple "same" word (but not the same meanings)
 * not at all efficient ! (slow down Brackets)
-* Should I really include directly Jedi ?
 
 
 ## Future:
 * Better sorted list (variable first, then function ...)
+* Use child_process.spawn rather than temp file ?
+* Should I really include directly Jedi ?
