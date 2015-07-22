@@ -8,18 +8,25 @@ define(function (require, exports, module) {
         IGNORED_CHARACTERS = [' ', '+', '-', '/', '*', '(', ')', '[', ']', ':', ',', '<', '>', '{', '}', '=', '%', '!'];
     
     /**
-     * Is the token hintable ? No if inside a comment or inside a string
+     * Is the token hintable ? No if inside a comment or inside a string and is too short (number of characters < 3)
      * @param token
      * @return {boolean}
      */
     function isHintable(token) {
+        var bool;
         switch (token.type) {
         case "comment":
         case "string":
             return false;
         default:
-            return true;
+            break;
         }
+        
+        if (token.string.length < 3) {
+            return false;
+        }
+        
+        return true;
     }
     
     function isValidToken(implicitChar) {

@@ -17,7 +17,6 @@ Work in progress. You can try and give me feedback.
 
 ## TODO:
 * Test on Windows (can't test on Mac)
-* No hint when current token < 2 or 3 ?
 * Use child_process.spawn ?
 * Add color for proposition (as JS hint in Brackets)
 * Cache for getHints ?
