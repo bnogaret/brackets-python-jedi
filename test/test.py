@@ -1,4 +1,5 @@
 import requests
+import test2
 
 variable = "HEY !"
 
@@ -50,3 +51,6 @@ class newTest:
 iii = newTest()
 iii.relative()
 requests.get()
+
+azerty = test2.newTest2()
+azerty.relative()
