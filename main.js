@@ -31,9 +31,9 @@ define(function (require, exports, module) {
         COMMAND_NAME_DOC    = "jediDocCommand";
     
     var modulePath          = ExtensionUtils.getModulePath(module),
-        nodeConnection      = new NodeConnection(),
         domainPath          = ExtensionUtils.getModulePath(module) + "node/JediDomain",
-        pythonJediDomain    = new NodeDomain(DOMAIN_NAME, ExtensionUtils.getModulePath(module, "node/JediDomain"));
+        pythonJediDomain    = new NodeDomain(DOMAIN_NAME, ExtensionUtils.getModulePath(module, "node/JediDomain")),
+        nodeConnection;
     
     /**
      * Execute python and return a promise the Json result.
@@ -42,13 +42,18 @@ define(function (require, exports, module) {
         
         var deferred = new $.Deferred();
         
+        if (nodeConnection.connected()) {
+            nodeConnection.disconnect();
+        }
+        
         nodeConnection.connect(true).fail(function (err) {
             console.error("[ERROR:getJson] connect to node: ", err);
             deferred.reject(err);
         }).then(function () {
-            return nodeConnection.loadDomains([domainPath], true).fail(function (err) {
-                console.error("[ERROR:getJson] domain: ", err);
-            });
+            return nodeConnection.loadDomains([domainPath], true)
+                .fail(function (err) {
+                    console.error("[ERROR:getJson] domain: ", err);
+                });
         }).then(function () {
             nodeConnection.domains[DOMAIN_NAME][call](modulePath, projectRootPath, pythonCode, currentLine, currentCol)
                 .fail(function (err) {
@@ -99,7 +104,6 @@ define(function (require, exports, module) {
      */
     JediHint.prototype.getHints = function (implicitChar) {
         console.log("getHints");
-        console.log("implicitChar: " + implicitChar + " et " + JediUtils.isValidToken(implicitChar));
 
         if (JediUtils.isValidToken(implicitChar)) {
             var deferred = new $.Deferred();
@@ -114,7 +118,7 @@ define(function (require, exports, module) {
                 .then(function (dataJSON) {
                     var hintList = [];
 
-                    console.log("Done:" + JSON.stringify(dataJSON));
+                    console.log("[getHints] : Done:" + JSON.stringify(dataJSON));
 
                     dataJSON.forEach(function (node, number) {
                         if (node.type === "function") {
@@ -152,8 +156,8 @@ define(function (require, exports, module) {
             startToken          = {line: cursor.line, ch: currentToken.start},
             endToken            = {line: cursor.line, ch: cursor.ch};
                 
-        // Test equivalent to startsWith
-        if (hint.indexOf(currentToken.string) === 0) {
+        // Check if the hint starts with the character(s) between currentToken.start and cursor.ch of the current token
+        if (hint.indexOf(currentToken.string.substring(0, cursor.ch -  currentToken.start)) === 0) {
             // Hack : should use Document but it seems there is a problem
             this.editor.document.replaceRange(hint, startToken, endToken);
         } else {
@@ -256,6 +260,8 @@ define(function (require, exports, module) {
     
     AppInit.appReady(function () {
         console.log(modulePath);
+        
+        nodeConnection = new NodeConnection();
         
         CodeHintManager.registerHintProvider(new JediHint(), ["python"], 1);
         
