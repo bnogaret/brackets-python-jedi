@@ -19,7 +19,6 @@ Work in progress. You can try and give me feedback.
 
 ## TODO:
 * Test on Windows (can't test on Mac)
-* Jump to def vers un autre fichier
 
 
 ## Problems:
@@ -29,7 +28,8 @@ Work in progress. You can try and give me feedback.
 
 
 ## Future:
-* Better sorted list (variable first, then function ...)
+* Better sorted list (variable first, then function ...) ?
 * Use child_process.spawn rather than temp file ?
 * Should I really include directly Jedi ?
-* Add color for proposition (as JS hint in Brackets)
+* Add color for proposition (as JS hint in Brackets) ?
+* Jump to definition in another file ?
