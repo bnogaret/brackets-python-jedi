@@ -238,18 +238,6 @@ define(function (require, exports, module) {
             return null;
         }
     }
-
-    
-    function menusHandler() {
-        if (JediUtils.isLanguagePython(DocumentManager.getCurrentDocument())) {
-            var editor = EditorManager.getActiveEditor();
-            
-            jumpToDefProvider(editor, editor.getCursorPos());
-            
-        } else {
-            window.alert("This is not a python file.");
-        }
-    }
     
     
     AppInit.appReady(function () {
@@ -263,12 +251,4 @@ define(function (require, exports, module) {
         
         EditorManager.registerInlineDocsProvider(inlineDocsProvider);
     });
-
-
-    // Register the command
-    CommandManager.register(MENU_NAME, MY_COMMAND_ID, menusHandler);
-
-    // Register a menu item bound to the command
-    var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
-    menu.addMenuItem(MY_COMMAND_ID, "Ctrl-Shift-G");
 });
