@@ -141,6 +141,17 @@ define(function (require, exports, module) {
         return template;
     }
     
+    /*
+     * Return the token at the cursorPos of the editor. If cursorPos is not defined, return the token at the current cursor position of the editor.
+     */
+    function getTokenAt(editor, cursorPos) {
+        if (cursorPos && cursorPos.line && cursorPos.ch) {
+            return editor._codeMirror.getTokenAt(cursorPos);
+        } else {
+            return editor._codeMirror.getTokenAt(editor.getCursorPos());
+        }
+    }
+    
     
     exports.isHintable          = isHintable;
     exports.isTokenLongEnough   = isTokenLongEnough;
@@ -150,4 +161,5 @@ define(function (require, exports, module) {
     exports.compareHint         = compareHint;
     exports.encodeToHtml        = encodeToHtml;
     exports.jsonToDocsWidget    = jsonToDocsWidget;
+    exports.getTokenAt          = getTokenAt;
 });

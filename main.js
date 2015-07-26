@@ -88,7 +88,7 @@ define(function (require, exports, module) {
         this.editor = editor;
         this.projectRootPath = ProjectManager.getProjectRoot()._path;
 
-        var currentToken = this.editor._codeMirror.getTokenAt(this.editor.getCursorPos());
+        var currentToken = JediUtils.getTokenAt(this.editor);
 
         if (!JediUtils.isHintable(currentToken)) {
             return false;
@@ -152,7 +152,7 @@ define(function (require, exports, module) {
         console.log("insertHint");
 
         var cursor              = this.editor.getCursorPos(),
-            currentToken        =  this.editor._codeMirror.getTokenAt(cursor),
+            currentToken        = JediUtils.getTokenAt(this.editor, cursor),
             startToken          = {line: cursor.line, ch: currentToken.start},
             endToken            = {line: cursor.line, ch: cursor.ch};
                 
@@ -192,8 +192,13 @@ define(function (require, exports, module) {
                 })
                 .then(function (dataJSON) {
                     console.log(dataJSON);
-                    if (!dataJSON[0].path) {
-                        editor.setCursorPos(dataJSON[0].line - 1, dataJSON[0].column);
+                    if (dataJSON && dataJSON[0] && !dataJSON[0].path) {
+                        var l = dataJSON[0].line - 1,
+                            token = JediUtils.getTokenAt(editor, {line: l, ch: dataJSON[0].column + 1}),
+                            startCursor = {line: l, ch: token.start},
+                            endCursor = {line: l, ch: token.end};
+                        
+                        editor.setSelection(startCursor, endCursor, true);
                     }
                     deferred.resolve();
                 });
