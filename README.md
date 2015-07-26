@@ -6,6 +6,8 @@ brackets-python-jedi
 
 [To have more information about Jedi](http://jedi.jedidjah.ch/en/latest/)
 
+Jedi is directly included in the .zip.
+
 Work in progress. You can try and give me feedback.
 
 
@@ -17,7 +19,6 @@ Work in progress. You can try and give me feedback.
 
 ## TODO:
 * Test on Windows (can't test on Mac)
-* Add color for proposition (as JS hint in Brackets)
 * Jump to def vers un autre fichier
 
 
@@ -31,3 +32,4 @@ Work in progress. You can try and give me feedback.
 * Better sorted list (variable first, then function ...)
 * Use child_process.spawn rather than temp file ?
 * Should I really include directly Jedi ?
+* Add color for proposition (as JS hint in Brackets)

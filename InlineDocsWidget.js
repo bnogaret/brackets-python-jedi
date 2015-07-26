@@ -16,6 +16,9 @@ define(function (require, exports, module) {
     // Load LESS file
     ExtensionUtils.loadStyleSheet(module, "InlineDocsWidget.less");
     
+    /*
+     * Highly inspired by https://github.com/adobe/brackets/tree/master/src/extensions/default/WebPlatformDocs
+     */
     function InlineDocsWidget(templateVars) {
         InlineWidget.call(this);
         
