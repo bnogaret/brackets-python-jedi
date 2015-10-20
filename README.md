@@ -6,7 +6,7 @@ brackets-python-jedi
 
 [To have more information about Jedi](http://jedi.jedidjah.ch/en/latest/)
 
-Jedi is directly included in the .zip.
+Python must be available in you Path. Jedi is bundled with the extension.
 
 Work in progress. You can try and give me feedback.
 

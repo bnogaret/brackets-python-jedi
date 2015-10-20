@@ -1,7 +1,6 @@
 import sys
-import jedi
 import json
-
+import jedi
 
 def completions(source, line, column):
     """
@@ -63,13 +62,13 @@ def goto(source, line, column):
     """
     Goto for the line and column
     
-    Arguments::
-        :param source: code to generate completion for
-        :param line: line of the current cursor
-        :param column: column of the current cursor
+    Arguments:
+        source: code to generate completion for
+        line: line of the current cursor
+        column: column of the current cursor
     
-    Return::
-        :rtype: list of dictionaries containing the name, line, column and path for all completions. 
+    Return:
+        list of dictionaries containing the name, line, column and path for all completions. 
     """
     
     script = jedi.Script(source, line, column)
@@ -119,7 +118,6 @@ def main():
 
     f.close()
     print(res)
-
 
 
 if __name__ == '__main__':
